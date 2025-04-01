@@ -108,29 +108,21 @@ def fit_data(file_path, t_cri):
 
     alpha, Q0 = popt
     alpha_g = alpha
-    print("Q0, alpha:",Q0,alpha)
-    # Compute alternative alpha_2 as local finite-difference slope around t_cri.
-    # We use the two points in lgt_filtered whose values are closest to log10(t_cri)
-    target = np.log10(t_cri)
-    sorted_idx = np.argsort(np.abs(lgt_filtered - target))
-    if len(sorted_idx) < 2:
-        alpha_2 = np.nan
-        print("Not enough data points to compute local slope alpha_2.")
-    else:
-        i1, i2 = sorted_idx[:2]
-        # Ensure that the points are in increasing order of lgt
-        if lgt_filtered[i1] > lgt_filtered[i2]:
-            i1, i2 = i2, i1
-        # Compute the finite difference slope
-        delta = lgt_filtered[i2] - lgt_filtered[i1]
-        alpha_2 = (lgMt_filtered[i1] - lgMt_filtered[i2]) / delta
-        print("alternative local finite difference alpha =",alpha_2)
+
+    # for the local fit find the closes values of t closest to t_cri
+    sorted_idx = np.argsort(np.abs(lgt_filtered - np.log10(t_cri)))
+
+    i1, i2 = sorted_idx[:2]
+    # Ensure that the points are in increasing order of lgt
+    if lgt_filtered[i1] > lgt_filtered[i2]:
+        i1, i2 = i2, i1
+    # Compute the finite difference slope
+    delta = lgt_filtered[i2] - lgt_filtered[i1]
+    alpha_l = (lgMt_filtered[i1] - lgMt_filtered[i2]) / delta
 
     if alpha > 0.985:
-        if alpha_2 <= 0.985:
-            print("global alpha too close to diverging limit, resorting")
-            print("to local alpha at t_cri:", alpha_2)
-            alpha = alpha_2
+        if alpha_l <= 0.985:
+            alpha = alpha_l
         else:
             alpha = 0.985
 
